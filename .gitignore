@@ -1,0 +1,3 @@
+langchain_env/
+*.env
+.streamlit/
