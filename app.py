@@ -222,10 +222,10 @@ with right_col:
             )
             submitted = st.form_submit_button("Send")
 
+        st.markdown(f"**You:** {query}")
         if submitted and query:
             response_box = st.empty()
             streamed_answer = ""
-
             with st.spinner("Thinking..."):
                 for chunk in st.session_state["rag_chain"].stream(query):
                     streamed_answer += chunk
