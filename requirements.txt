@@ -5,3 +5,4 @@ langchain-google-genai
 faiss-cpu
 youtube-transcript-api
 pytube
+langchain_groq
