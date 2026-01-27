@@ -64,10 +64,24 @@ st.set_page_config(
 # Helper functions
 def get_video_title(video_id: str) -> str:
     try:
-        yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
-        return yt.title
-    except Exception:
-        return "Unable to fetch title"
+        import requests
+        r = requests.get(
+            "https://www.youtube.com/oembed",
+            params={
+                "url": f"https://www.youtube.com/watch?v={video_id}",
+                "format": "json"
+            },
+            timeout=10
+        )
+        r.raise_for_status()
+        return r.json()["title"]
+    except:
+        try:
+            yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+            return yt.title
+        except:
+            return "Title not available"
+
 
 def load_transcript(video_id: str) -> str:
     api = YouTubeTranscriptApi()   # 👈 instantiate
@@ -132,6 +146,19 @@ def build_rag_chain(vectorstore):
 
     return rag_chain
 
+def scroll_to_bottom():
+    st.markdown(
+        """
+        <script>
+        var chatContainer = window.parent.document.querySelector('section.main');
+        if (chatContainer) {
+            chatContainer.scrollTo(0, chatContainer.scrollHeight);
+        }
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 
 # UI
@@ -185,16 +212,7 @@ with right_col:
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
 
-        # CHAT HISTORY (SCROLLABLE, ABOVE INPUT)
-        chat_container = st.container(height=420)
-
-        with chat_container:
-            for role, msg in st.session_state.chat_history:
-                if role == "user":
-                    st.markdown(f"**You:** {msg}")
-                else:
-                    st.markdown(f"**Bot:** {msg}")
-                st.markdown("---")
+        # CHAT HISTORY (SCROLLABLE)
 
         # INPUT BAR (ALWAYS VISIBLE)
         with st.form(key="chat_form", clear_on_submit=True):
@@ -204,30 +222,29 @@ with right_col:
             )
             submitted = st.form_submit_button("Send")
 
-        # HANDLE SUBMISSION
         if submitted and query:
-            # 1️⃣ Add user message immediately
-            st.session_state.chat_history.append(("user", query))
+            response_box = st.empty()
+            streamed_answer = ""
 
-            # 2️⃣ Stream bot answer INSIDE chat container
-            with chat_container:
-                st.markdown(f"**You:** {query}")
-                st.markdown("---")
-                bot_placeholder = st.empty()
-
-                streamed_answer = ""
+            with st.spinner("Thinking..."):
                 for chunk in st.session_state["rag_chain"].stream(query):
                     streamed_answer += chunk
-                    bot_placeholder.markdown(f"**Bot:** {streamed_answer}")
+                    response_box.markdown(f"**Bot:** {streamed_answer}")
 
+            st.session_state.chat_history.append((query, streamed_answer))
+
+        chat_container = st.container(height=380)
+
+        with chat_container:
+            for q, a in st.session_state.chat_history:
+                st.markdown(f"**You:** {q}")
+                st.markdown(f"**Bot:** {a}")
                 st.markdown("---")
-
-            # 3️⃣ Save final bot message
-            st.session_state.chat_history.append(("bot", streamed_answer))
-
 
 
 
 st.markdown(
     "Built with ❤️ using Streamlit · LangChain · Groq · FAISS"
 )
+
+
