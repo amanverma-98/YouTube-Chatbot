@@ -229,7 +229,6 @@ with right_col:
             with st.spinner("Thinking..."):
                 for chunk in st.session_state["rag_chain"].stream(query):
                     streamed_answer += chunk
-                    response_box.markdown(f"**You:** {query}")
                     response_box.markdown(f"**Bot:** {streamed_answer}")
 
             st.session_state.chat_history.append((query, streamed_answer))
