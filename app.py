@@ -171,47 +171,18 @@ with left_col:
 
 # RIGHT COLUMN
 with right_col:
-    st.subheader("💬 Chat")
-
-    if "rag_chain" not in st.session_state:
-        st.info("👈 Enter a YouTube Video ID to start")
-    else:
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
-
-        # CHAT HISTORY (SCROLLABLE)
-
-        # INPUT BAR (ALWAYS VISIBLE)
-        with st.form(key="chat_form", clear_on_submit=True):
-            query = st.text_input(
-                "",
-                placeholder="Ask something about the video..."
-            )
-            submitted = st.form_submit_button("Send")
-
-        st.markdown(f"**You:** {query}")
-        if submitted and query:
-            response_box = st.empty()
-            streamed_answer = ""
-            with st.spinner("Thinking..."):
-                for chunk in st.session_state["rag_chain"].stream(query):
-                    streamed_answer += chunk
-                    response_box.markdown(f"**Bot:** {streamed_answer}")
-
-            st.session_state.chat_history.append((query, streamed_answer))
-
-        chat_container = st.container(height=380)
-
-        with chat_container:
-            for q, a in st.session_state.chat_history:
-                st.markdown(f"**You:** {q}")
-                st.markdown(f"**Bot:** {a}")
-                st.markdown("---")
-
-
-
-st.markdown(
-    "Built with ❤️ using Streamlit · LangChain · Groq · FAISS"
-)
+    st.subheader("💬 Ask Questions")
+    query = st.text_input("Ask something about the video")
+    
+    
+    if query:
+    response = rag_chain.invoke({"question": query})
+    st.markdown(response)
+    
+    
+    
+    st.markdown(
+        "Built with ❤️ using Streamlit · LangChain · Groq · FAISS"
+    )
 
 
