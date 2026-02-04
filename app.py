@@ -64,23 +64,10 @@ st.set_page_config(
 # Helper functions
 def get_video_title(video_id: str) -> str:
     try:
-        import requests
-        r = requests.get(
-            "https://www.youtube.com/oembed",
-            params={
-                "url": f"https://www.youtube.com/watch?v={video_id}",
-                "format": "json"
-            },
-            timeout=10
-        )
-        r.raise_for_status()
-        return r.json()["title"]
-    except:
-        try:
-            yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
-            return yt.title
-        except:
-            return "Title not available"
+       yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+       return yt.title
+    except Exception:
+       return "Unable to fetch title"
 
 
 def load_transcript(video_id: str) -> str:
@@ -171,28 +158,15 @@ left_col, right_col = st.columns([1, 2])
 
 # LEFT COLUMN
 with left_col:
-    st.subheader("📌 Video Info")
-
-    video_id = st.text_input(
-        "YouTube Video ID",
-        placeholder="e.g. Gfr50f6ZBvo"
-    )
-
-    if video_id:
-        with st.spinner("Fetching video info & transcript..."):
-            try:
-                title = get_video_title(video_id)
-                transcript_text, lang = load_transcript(video_id)
-                st.success("Transcript loaded")
-            except Exception as e:
-                st.error(f"Transcript error: {e}")
-                st.stop()
-
-        st.markdown("### 🎬 Metadata")
-        st.markdown(f"**Title:** {title}")
-        st.markdown(f"**Video ID:** `{video_id}`")
-        st.markdown(f"**Language:** {lang}")
-        st.markdown(f"**Words:** {len(transcript_text.split())}")
+        st.subheader("📌 Video Metadata")
+        video_url = st.text_input("YouTube URL")
+        
+        
+        if video_url:
+           video_id = video_url.split("v=")[-1]
+           title = get_video_title(video_id)
+           st.markdown(f"**🎬 Title:** {title}")
+           st.markdown(f"**🆔 Video ID:** `{video_id}`")
 
         with st.spinner("Building vector database..."):
             vectorstore = create_vectorstore(transcript_text)
