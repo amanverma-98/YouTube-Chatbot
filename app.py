@@ -168,13 +168,6 @@ with left_col:
            st.markdown(f"**🎬 Title:** {title}")
            st.markdown(f"**🆔 Video ID:** `{video_id}`")
 
-        with st.spinner("Building vector database..."):
-            vectorstore = create_vectorstore(transcript_text)
-            st.success("Vector DB ready")
-
-        rag_chain = build_rag_chain(vectorstore)
-        st.session_state["rag_chain"] = rag_chain
-
 
 # RIGHT COLUMN
 with right_col:
